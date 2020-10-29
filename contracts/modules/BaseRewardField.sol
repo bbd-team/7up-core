@@ -66,9 +66,10 @@ contract BaseRewardField {
     function _currentReward() internal virtual view returns (uint) {
         uint256 multiplier = block.number.sub(lastRewardBlock);
         uint reward =  multiplier.mul(amountPerBlock);
-        uint remain = IERC20(shareToken).balanceOf(address(this)).sub(totalShare);
-        if(remain < reward) {
-            reward = remain;
+        if(IERC20(shareToken).balanceOf(address(this)) < reward) {
+            return IERC20(shareToken).balanceOf(address(this));
+        } else {
+            return reward;
         }
     }
     
