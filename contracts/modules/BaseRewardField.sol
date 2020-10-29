@@ -41,6 +41,14 @@ contract BaseRewardField {
     function _setShareToken(address _shareToken) internal {
         shareToken = _shareToken;
     }
+    
+    function _changeAmountPerBlock(uint value) internal returns (bool) {
+        uint old = amountPerBlock;
+        require(value != old, 'AMOUNT_PER_BLOCK_NO_CHANGE');
+        _update();
+        amountPerBlock = value;
+        return true;
+    }
 
     // Update reward variables of the given pool to be up-to-date.
     function _update() internal virtual {
