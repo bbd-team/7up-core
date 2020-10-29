@@ -52,14 +52,15 @@ contract BaseRewardField {
 
     // Update reward variables of the given pool to be up-to-date.
     function _update() internal virtual {
-        uint256 reward = _currentReward();
-        if (totalProductivity == 0 || reward == 0) {
-            totalShare = totalShare.add(_currentReward());
+        if (totalProductivity == 0) {
+            lastRewardBlock = block.number;
             return;
         }
         
+        uint256 reward = _currentReward();
         accAmountPerShare = accAmountPerShare.add(reward.mul(1e12).div(totalProductivity));
         totalShare += reward;
+        lastRewardBlock = block.number;
     }
     
     function _currentReward() internal virtual view returns (uint) {
