@@ -66,6 +66,7 @@ describe('deploy', () => {
 		console.log('7upTokenUserMint:', ethers.utils.formatBytes32String("7upTokenUserMint"))
 		console.log('changePricePercent:', ethers.utils.formatBytes32String("changePricePercent"))
 		console.log('liquidationRate:', ethers.utils.formatBytes32String("liquidationRate"))
+		console.log('marketFrenzy:', ethers.utils.formatBytes32String("marketFrenzy"))
 		
 		await configContract.connect(walletDeveloper).initialize(
 			platformContract.address, 
@@ -325,6 +326,7 @@ describe('deploy', () => {
 	it('test circuit breaker', async()=>{
 		console.log('wallet team:', convertBigNumber(await tokenFIL.balanceOf(walletTeam.address),1e18))
 		console.log('wallet share:', convertBigNumber(await tokenFIL.balanceOf(shareContract.address),1e18))
+
 		// let priceDurationKey = ethers.utils.formatBytes32String('changePriceDuration');
 		// let price002 = ethers.utils.parseEther('0.002')
 		// let price001 = ethers.utils.parseEther('0.001')
@@ -342,5 +344,56 @@ describe('deploy', () => {
 		// console.log('set price to 0.001')
 		// await configContract.connect(walletDeveloper).setPoolPrice([poolContract.address], [ethers.utils.parseEther('0.001')]); 
 	});
+
+	it('test withdrawable/reinvestable', async() => {
+		let platformShare = await configContract.params(ethers.utils.formatBytes32String('platformShare'));
+		let totalSupply = (await poolContract.totalBorrow()).add(await poolContract.remainSupply());
+		let interestPerSupply = await poolContract.interestPerSupply(); 
+		let interests = await poolContract.getInterests();
+		let totalBorrow = await poolContract.totalBorrow();
+		let meInterests = (await poolContract.supplys(walletMe.address)).interests;
+		let interestSettled = (await  poolContract.supplys(walletMe.address)).interestSettled;
+		let meSupply = (await poolContract.supplys(walletMe.address)).amountSupply;
+		let remainSupply = (await poolContract.remainSupply());
+		let deltaBlock = (await provider.getBlockNumber()) - (await poolContract.lastInterestUpdate());
+
+		meInterests = meInterests.add(interestPerSupply.mul(meSupply).div(ethers.utils.parseEther('1')).sub(interestSettled));
+
+		console.log('deltaBlock=', deltaBlock);
+		console.log('totalSupply=', convertBigNumber(totalSupply, 1e18));
+		console.log('interestPerSupply=', convertBigNumber(interestPerSupply, 1e18));
+		console.log('interests=', convertBigNumber(interests, 1e18));
+		console.log('totalBorrow=', convertBigNumber(totalBorrow, 1e18));
+		console.log('meInterests=', convertBigNumber(meInterests, 1e18));
+		console.log('interestSettled=', convertBigNumber(interestSettled, 1e18));
+		console.log('meSupply=', convertBigNumber(meSupply,1e18));
+		console.log('platformShare=', convertBigNumber(platformShare, 1e18));
+		console.log('remainSupply=', convertBigNumber(remainSupply, 1e18));
+
+		//test reinvestable :
+		let reinvestAmount = meInterests * platformShare / 1e18
+		if(reinvestAmount < remainSupply)
+		{
+			console.log('ok to invest');
+		}
+		else 
+		{
+			console.log('not enough money to pay');
+		}
+
+		//test withdrawable :
+		let a = meInterests - meInterests.mul(platformShare).div(ethers.utils.parseEther('1'));
+		console.log('a=', a);
+		let withdrawAmount = meSupply.add(a);
+		console.log('withdrawAmount=', convertBigNumber(withdrawAmount, 1e18));
+		if(withdrawAmount < remainSupply)
+		{
+			console.log('ok  to withdraw');
+		}
+		else
+		{
+			console.log('not enough money to withdraw');
+		}
+	})
 
 })
