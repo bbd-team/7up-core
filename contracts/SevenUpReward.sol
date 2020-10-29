@@ -23,7 +23,7 @@ contract SevenUpReward is BaseRewardField {
     function initialize(address _stakeToken, address _shareToken) external {
         require(msg.sender == owner, "FORBIDDEN");
         stakeToken = _stakeToken;
-        shareToken = _shareToken;
+        _setShareToken(_shareToken);
     }
     
     function extract(uint _amount) external {
