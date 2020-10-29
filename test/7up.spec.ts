@@ -67,6 +67,7 @@ describe('deploy', () => {
 		console.log('changePricePercent:', ethers.utils.formatBytes32String("changePricePercent"))
 		console.log('liquidationRate:', ethers.utils.formatBytes32String("liquidationRate"))
 		console.log('marketFrenzy:', ethers.utils.formatBytes32String("marketFrenzy"))
+		console.log('platformShare:', ethers.utils.formatBytes32String("platformShare"))
 		
 		await configContract.connect(walletDeveloper).initialize(
 			platformContract.address, 
