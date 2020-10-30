@@ -356,12 +356,12 @@ contract SevenUpQuery {
         (reserve0, reserve1, ) = ISwapPair(_pair).getReserves();
     }
 
-    function getCanMaxBorrowAmount(address _pair, address _user) public view returns(uint) {
+    function getCanMaxBorrowAmount(address _pair, address _user, uint _blocks) public view returns(uint) {
         (, uint amountCollateral, uint interestSettled, uint amountBorrow, uint interests) = ISevenUpPool(_pair).borrows(_user);
         uint maxBorrow = ISevenUpPool(_pair).getMaximumBorrowAmount(amountCollateral);
         uint poolBalance = IERC20(ISevenUpPool(_pair).supplyToken()).balanceOf(_pair);
 
-        uint _interestPerBorrow = ISevenUpPool(_pair).interestPerBorrow().add(ISevenUpPool(_pair).getInterests().mul(block.number+1 - ISevenUpPool(_pair).lastInterestUpdate()));
+        uint _interestPerBorrow = ISevenUpPool(_pair).interestPerBorrow().add(ISevenUpPool(_pair).getInterests().mul(block.number+_blocks - ISevenUpPool(_pair).lastInterestUpdate()));
         uint _totalInterest = interests.add(_interestPerBorrow.mul(amountBorrow).div(1e18).sub(interestSettled));
 
         uint repayInterest = amountCollateral == 0 ? 0 : _totalInterest.mul(amountCollateral).div(amountCollateral);
